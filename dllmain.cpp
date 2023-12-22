@@ -566,7 +566,9 @@ t_LdrDisableThreadCalloutsForDll* LdrDisableThreadCalloutsForDll;
 static NTSTATUS(WINAPI* p__wine_unix_call)(UINT64, unsigned int, void*);
 typedef NTSTATUS WINAPI t__wine_unix_call(UINT64, unsigned int, void*);
 
-extern char gdt[9216], armsyscallhandler[4096];
+extern char gdt[], armsyscallhandler[52], x86syscallhandler[], x86faulthandler[];
+extern UINT32 i386linuxsyscalltable[];
+extern void genfaulty(UINT64);
 
 BOOL APIENTRY DllMain(HMODULE hModule,
 	DWORD  ul_reason_for_call,
@@ -582,6 +584,9 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 	switch (ul_reason_for_call)
 	{
 	case DLL_PROCESS_ATTACH:
+		*(UINT64*)(&armsyscallhandler[44]) = (UINT64)&i386linuxsyscalltable;
+		*(UINT32*)(&x86syscallhandler[9]) = (UINT32)&armsyscallhandler;
+		*(UINT32*)(&x86faulthandler[5]) = (UINT32)&genfaulty;
 		DWORD tmp;
 		VirtualProtect(armsyscallhandler, sizeof(armsyscallhandler), 0x40, &tmp);
 		FlushInstructionCache(GetCurrentProcess(), armsyscallhandler, sizeof(armsyscallhandler));
