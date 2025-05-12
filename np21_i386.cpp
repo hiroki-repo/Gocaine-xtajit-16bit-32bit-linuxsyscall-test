@@ -924,6 +924,7 @@ int CPU_EXECUTE_CC(int clockcount)
 		break;
 	}
 #endif
+		CPU_MSR_TSC += CPU_BASECLOCK;
 		do {
 			exec_1step();
 			if (CPU_TRAP) {
@@ -942,6 +943,7 @@ int CPU_EXECUTE_CC(int clockcount)
 			}
 			dmax86();
 		} while (CPU_REMCLOCK > 0);
+		CPU_MSR_TSC = CPU_MSR_TSC - CPU_REMCLOCK + CPU_BASECLOCK;
 #ifdef __cplusplus
 	}
 catch (int e) {
@@ -989,7 +991,9 @@ catch (int e) {
 
 extern "C" __declspec(dllexport) int CPU_EXECUTE_CC_V2(int clockcount) {
 	CPU_REMCLOCK = CPU_BASECLOCK = clockcount;
+	CPU_MSR_TSC += CPU_BASECLOCK;
 	exec_allstep();
+	CPU_MSR_TSC = CPU_MSR_TSC - CPU_REMCLOCK + CPU_BASECLOCK;
 	return CPU_BASECLOCK - CPU_REMCLOCK;
 }
 
